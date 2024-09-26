@@ -1,59 +1,65 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(const TemperatureConversionApp());
+}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TemperatureConversionApp extends StatelessWidget {
+  const TemperatureConversionApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Temperature Converter',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
+        scaffoldBackgroundColor: Colors.black,
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white), // Updated to bodyMedium
+        ),
       ),
-      home: TempConverterHome(),
+      home: const TemperatureConverterScreen(),
     );
   }
 }
 
-class TempConverterHome extends StatefulWidget {
-  const TempConverterHome({super.key});
+class TemperatureConverterScreen extends StatefulWidget {
+  const TemperatureConverterScreen({super.key});
 
   @override
-  _TempConverterHomeState createState() => _TempConverterHomeState();
+  _TemperatureConverterScreenState createState() =>
+      _TemperatureConverterScreenState();
 }
 
-class _TempConverterHomeState extends State<TempConverterHome> {
-  final TextEditingController _tempController = TextEditingController();
-  bool _isFtoC = true;
+class TemperatureConverterScreenState {
+}
+
+class _TemperatureConverterScreenState
+    extends State<TemperatureConverterScreen> {
+  String _conversionType = 'F to C'; // Default conversion
+  final TextEditingController _temperatureController = TextEditingController();
   String _result = '';
-  final List<String> _history = [];
-  String? _inputError; // To show error message if input is invalid
+  List<String> _conversionHistory = [];
 
   void _convertTemperature() {
-    setState(() {
-      _inputError = null;
-      double? inputTemp = double.tryParse(_tempController.text);
+    double inputTemp = double.tryParse(_temperatureController.text) ?? 0;
+    double convertedTemp;
 
-      if (inputTemp == null) {
-        _inputError = 'Please enter a valid number';
-        return;
-      }
-
-      double convertedTemp;
-      if (_isFtoC) {
-        // Fahrenheit to Celsius conversion
-        convertedTemp = (inputTemp - 32) * 5 / 9;
+    if (_conversionType == 'F to C') {
+      convertedTemp = (inputTemp - 32) * 5 / 9;
+      setState(() {
         _result = "${inputTemp.toStringAsFixed(1)} °F => ${convertedTemp.toStringAsFixed(2)} °C";
-      } else {
-        // Celsius to Fahrenheit conversion
-        convertedTemp = inputTemp * 9 / 5 + 32;
+      });
+    } else {
+      convertedTemp = inputTemp * 9 / 5 + 32;
+      setState(() {
         _result = "${inputTemp.toStringAsFixed(1)} °C => ${convertedTemp.toStringAsFixed(2)} °F";
-      }
+      });
+    }
 
-      // Add the conversion result to history
-      _history.insert(0, _result);
+    // Add to history
+    setState(() {
+      _conversionHistory.add(_result);
     });
   }
 
@@ -61,80 +67,96 @@ class _TempConverterHomeState extends State<TempConverterHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Temperature Converter',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        )
-        ),
+        title: const Text('Temperature Converter'),
         backgroundColor: Colors.green,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(18.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+          children: <Widget>[
+            const Text(
+              'Enter temperature to convert:',
+              style: TextStyle(fontSize: 18, color: Colors.green),
+            ),
+            TextField(
+              controller: _temperatureController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Temperature',
+                hintStyle: const TextStyle(color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Radio<bool>(
-                  value: true,
-                  groupValue: _isFtoC,
-                  onChanged: (bool? value) {
+                Radio<String>(
+                  value: 'F to C',
+                  groupValue: _conversionType,
+                  activeColor: Colors.green,
+                  onChanged: (String? value) {
                     setState(() {
-                      _isFtoC = value!;
+                      _conversionType = value!;
                     });
                   },
                 ),
-                const Text('F to C',
-                    style: TextStyle(fontSize: 20, color: Colors.black)),
-                Radio<bool>(
-                  value: false,
-                  groupValue: _isFtoC,
-                  onChanged: (bool? value) {
+                const Text(
+                  'F to C',
+                  style: TextStyle(color: Colors.white),
+                ),
+                const SizedBox(width: 20),
+                Radio<String>(
+                  value: 'C to F',
+                  groupValue: _conversionType,
+                  activeColor: Colors.green,
+                  onChanged: (String? value) {
                     setState(() {
-                      _isFtoC = value!;
+                      _conversionType = value!;
                     });
                   },
                 ),
-                const Text('C to F',
-                    style: TextStyle(fontSize: 20, color: Colors.black)),
+                const Text(
+                  'C to F',
+                  style: TextStyle(color: Colors.white),
+                ),
               ],
             ),
-           
-            TextField(
-              controller: _tempController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Temperature to convert',
-                border: const OutlineInputBorder(),
-                errorText: _inputError, // Error message displayed here
-              ),
-            ),
             const SizedBox(height: 20),
-            // Convert button
             ElevatedButton(
               onPressed: _convertTemperature,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Colors.green, // Updated backgroundColor
               ),
-                child: const Text('Convert'),
+              child: const Text('Convert'),
             ),
             const SizedBox(height: 20),
-            // Result display
+            const Text(
+              'Result:',
+              style: TextStyle(fontSize: 18, color: Colors.green),
+            ),
             Text(
               _result,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
+              style: const TextStyle(fontSize: 24, color: Colors.white),
             ),
             const SizedBox(height: 20),
-            // Conversion history display
+            const Text(
+              'Conversion History:',
+              style: TextStyle(fontSize: 18, color: Colors.green),
+            ),
             Expanded(
               child: ListView.builder(
-                itemCount: _history.length,
+                itemCount: _conversionHistory.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(
-                      _history[index],
-                      style: const TextStyle(color: Colors.green),
+                      _conversionHistory[index],
+                      style: const TextStyle(color: Colors.white),
                     ),
                   );
                 },
@@ -146,5 +168,3 @@ class _TempConverterHomeState extends State<TempConverterHome> {
     );
   }
 }
-
-
